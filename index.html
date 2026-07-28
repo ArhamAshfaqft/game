@@ -256,6 +256,16 @@ body.night-mode #topbar .tb-cr{color:#ffaa00!important;text-shadow:0 0 14px rgba
 </style>
 </head>
 <body data-state="menu" oncontextmenu="event.preventDefault();event.stopImmediatePropagation();return false;">
+<div id="loaderScreen" style="position:fixed;inset:0;z-index:9999;background:#030c14;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Chakra Petch',sans-serif;color:#fff;transition:opacity .5s ease,visibility .5s ease;">
+  <div class="kicker" style="font-size:12px;letter-spacing:.45em;color:var(--amber);margin-bottom:12px;">5TH CARRIER AIR WING · COMBAT READINESS</div>
+  <h1 style="font:400 clamp(36px,5vw,56px) 'Black Ops One';letter-spacing:.05em;color:#eafff2;margin-bottom:20px;text-shadow:0 0 20px rgba(141,255,176,.4);">IRON SKIES</h1>
+  
+  <div style="width:360px;height:10px;background:rgba(0,243,255,.12);border:1px solid rgba(0,243,255,.35);border-radius:5px;overflow:hidden;position:relative;">
+    <div id="loaderBar" style="width:0%;height:100%;background:linear-gradient(90deg,#8dffb0,#ffb454);box-shadow:0 0 16px #8dffb0;transition:width .12s ease;"></div>
+  </div>
+  
+  <div id="loaderText" style="margin-top:16px;font:700 11px 'Chakra Petch';letter-spacing:.28em;color:#94dcae;">PRELOADING COMBAT ASSETS · 0%</div>
+</div>
 <canvas id="game" oncontextmenu="event.preventDefault();event.stopImmediatePropagation();return false;"></canvas>
 <div id="hud">
   <div id="topbar">
@@ -921,53 +931,37 @@ const TYPES={
  spectreE:{turn:2.6,maxSp:530,thrust:450,grip:4.2,hp:45,r:15,burstN:3,gun:{rate:.11,dmg:7,spread:.03},col:{body:"#4e4a58",dark:"#2a2733",accent:"#c9a8ff",canopy:"#e0d0ff"}}};
 const KILL_CR={jackal:100,viper:150,hornet:200,ace:250,spectreE:350};
 const islands=[],ships=[],clouds=[],sparkles=[],dashes=[];
-const LANDMASS_IMGS=[1,2,3,4].map(n=>{const img=new Image();img.src="models/landmass-"+n+".png";return img;});
-function genWorld(){
- islands.length=0;ships.length=0;clouds.length=0;sparkles.length=0;dashes.length=0;
- let att=0;
- while(islands.length<12 && att<400){
-  att++;const a=rand(0,TAU),d=rand(900,4800),nx=Math.cos(a)*d,ny=Math.sin(a)*d;
-  if(Math.hypot(nx,ny-560)<950)continue;
-  if(islands.some(isl=>Math.hypot(isl.x-nx,isl.y-ny)<1600))continue;
-  const r=rand(210,310),pts=[];
-  for(let k=0;k<12;k++){const an=k/12*TAU;pts.push([Math.cos(an)*r*rand(.7,1.15),Math.sin(an)*r*rand(.7,1.15)]);}
-  islands.push({x:nx,y:ny,r,pts,seed:Math.random()*10,rot:rand(0,TAU),imgIdx:islands.length%LANDMASS_IMGS.length});}
- ships.push({x:0,y:560,h:-.35,len:150,w:36,cv:true,spd:0});
- ships.push({x:-3000,y:-2400,h:.8,len:96,w:20,spd:14,t:0});
- ships.push({x:2800,y:-3200,h:2.4,len:80,w:18,spd:11,t:0});
- for(let i=0;i<22;i++){const s=makeCloud(rand(70,150));
-  clouds.push({x:rand(-WR_CL/2,WR_CL/2),y:rand(-WR_CL/2,WR_CL/2),f:rand(1.14,1.3),s:rand(.8,1.7),a:rand(.5,.85),spr:s.c,shd:s.s,ox:rand(50,80),oy:rand(60,95)});}
- for(let i=0;i<140;i++)sparkles.push({x:rand(-WR_SP/2,WR_SP/2),y:rand(-WR_SP/2,WR_SP/2),p:rand(0,TAU),s:rand(.6,1.6)});
- for(let i=0;i<70;i++)dashes.push({x:rand(-WR_DA/2,WR_DA/2),y:rand(-WR_DA/2,WR_DA/2),l:rand(14,34),p:rand(0,TAU)});}
-function makeCloud(r){const c=document.createElement("canvas"),s=document.createElement("canvas");const sz=r*3;c.width=c.height=s.width=s.height=sz;
- const a=c.getContext("2d"),b=s.getContext("2d");const n=7+Math.floor(Math.random()*4),blobs=[];
- for(let i=0;i<n;i++)blobs.push([sz/2+rand(-r*.55,r*.55),sz/2+rand(-r*.4,r*.4),rand(r*.35,r*.7)]);
- const draw=(g,col)=>{for(const[bx,by,br]of blobs){const gr=g.createRadialGradient(bx,by,0,bx,by,br);
-  gr.addColorStop(0,col.replace("A","0.85"));gr.addColorStop(.7,col.replace("A","0.4"));gr.addColorStop(1,col.replace("A","0"));g.fillStyle=gr;g.beginPath();g.arc(bx,by,br,0,TAU);g.fill();}};
- draw(a,"rgba(255,255,255,A)");draw(b,"rgba(4,20,32,A)");return{c,s};}
-
-/* ---- jet art ---- */
-function poly(pts){const p=new Path2D();p.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)p.lineTo(pts[i][0],pts[i][1]);p.closePath();return p}
-const mir=p=>p.map(([x,y])=>[x,-y]);
-const BODY=[[19,0],[13.5,2.3],[7,3.1],[1.5,3.6],[-8,3.4],[-15.5,2.7],[-18,1.9],[-18,-1.9],[-15.5,-2.7],[-8,-3.4],[1.5,-3.6],[7,-3.1],[13.5,-2.3]];
-const WING_L=[[5.5,2.4],[-4,13.6],[-8.6,13.9],[-10,12.3],[-6.6,2.8]];
-const TAIL_L=[[-9.5,2.2],[-16.2,8.4],[-18.6,8.1],[-18.9,6.6],[-15.2,2.2]];
-const FIN_L=[[-12.2,1.5],[-17.6,3.5],[-18.3,2.1],[-15.8,1.1]];
-const P={body:poly(BODY),wingL:poly(WING_L),wingR:poly(mir(WING_L)),tailL:poly(TAIL_L),tailR:poly(mir(TAIL_L)),finL:poly(FIN_L),finR:poly(mir(FIN_L)),can:new Path2D(),sil:new Path2D()};
-P.can.ellipse(8.5,0,4.6,2.1,0,0,TAU);[P.body,P.wingL,P.wingR,P.tailL,P.tailR,P.finL,P.finR].forEach(p=>P.sil.addPath(p));
-/* ---- PNG jet sprite manager ---- */
-const JET_SPRITES = {};
-const CARRIER_IMG = new Image(); CARRIER_IMG.src = "models/Aircraft-Carrier.png";
-const CRUISER_IMG = new Image(); CRUISER_IMG.src = "models/Patrol-Cruiser.png";
-function loadJetSprite(id, src){
- const img=new Image();
- img.onload=()=>{
-  img._loaded=true;
-  if(state==="menu"){
-   updMenuMeta();
-   [["ti0","jackal"],["ti1","viper"],["ti2","hornet"],["ti3","ace"],["ti4","spectreE"]].forEach(([cid,tp])=>drawThreatIcon(cid,tp));
+let totalAssetsToLoad=0, loadedAssetsCount=0;
+function trackAssetLoading(img){
+ totalAssetsToLoad++;
+ const updateProgress=()=>{
+  loadedAssetsCount++;
+  const pct=Math.min(100,Math.round((loadedAssetsCount/totalAssetsToLoad)*100));
+  const bar=$("loaderBar"), txt=$("loaderText");
+  if(bar)bar.style.width=pct+"%";
+  if(txt)txt.textContent="PRELOADING COMBAT ASSETS · "+pct+"%";
+  if(loadedAssetsCount>=totalAssetsToLoad){
+   setTimeout(()=>{
+    const loader=$("loaderScreen");
+    if(loader){loader.style.opacity="0";loader.style.pointerEvents="none";setTimeout(()=>{loader.style.display="none";},500);}
+    if(state==="menu"){
+     updMenuMeta();
+     [["ti0","jackal"],["ti1","viper"],["ti2","hornet"],["ti3","ace"],["ti4","spectreE"]].forEach(([cid,tp])=>drawThreatIcon(cid,tp));
+    }
+   },300);
   }
  };
+ if(img.complete)updateProgress();
+ else{img.onload=updateProgress;img.onerror=updateProgress;}
+}
+
+const LANDMASS_IMGS=[1,2,3,4].map(n=>{const img=new Image();img.src="models/landmass-"+n+".png";trackAssetLoading(img);return img;});
+const CARRIER_IMG = new Image(); trackAssetLoading(CARRIER_IMG); CARRIER_IMG.src = "models/Aircraft-Carrier.png";
+const CRUISER_IMG = new Image(); trackAssetLoading(CRUISER_IMG); CRUISER_IMG.src = "models/Patrol-Cruiser.png";
+
+function loadJetSprite(id, src){
+ const img=new Image();
+ trackAssetLoading(img);
  img.src=src;JET_SPRITES[id]=img;return img;
 }
 
