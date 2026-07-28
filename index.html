@@ -959,7 +959,17 @@ P.can.ellipse(8.5,0,4.6,2.1,0,0,TAU);[P.body,P.wingL,P.wingR,P.tailL,P.tailR,P.f
 const JET_SPRITES = {};
 const CARRIER_IMG = new Image(); CARRIER_IMG.src = "models/Aircraft-Carrier.png";
 const CRUISER_IMG = new Image(); CRUISER_IMG.src = "models/Patrol-Cruiser.png";
-function loadJetSprite(id, src){const img=new Image();img.src=src;JET_SPRITES[id]=img;return img;}
+function loadJetSprite(id, src){
+ const img=new Image();
+ img.onload=()=>{
+  img._loaded=true;
+  if(state==="menu"){
+   updMenuMeta();
+   [["ti0","jackal"],["ti1","viper"],["ti2","hornet"],["ti3","ace"],["ti4","spectreE"]].forEach(([cid,tp])=>drawThreatIcon(cid,tp));
+  }
+ };
+ img.src=src;JET_SPRITES[id]=img;return img;
+}
 
 /* -- Register PNG image paths -- */
 loadJetSprite("wraith", "models/FA-37.png");
