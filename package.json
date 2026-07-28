@@ -1,0 +1,14 @@
+{
+  "name": "iron-skies-game",
+  "version": "1.0.0",
+  "description": "IRON SKIES - Production-Grade Real-Time Multiplayer Air Combat Canvas Game",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}
