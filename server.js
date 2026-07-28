@@ -14,10 +14,10 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 
-// Serve static frontend files
-app.use(express.static(path.join(__dirname, './')));
+// Serve static files from root directory
+app.use(express.static(__dirname));
 
-app.get('*', (req, res) => {
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
@@ -58,7 +58,7 @@ io.on('connection', (socket) => {
     const room = {
       id: roomId,
       name: data.name || `SORTIE-${roomId}`,
-      mode: data.mode || 'ffa', // 'ffa' or 'tdm'
+      mode: data.mode || 'ffa',
       maxPlayers: data.maxPlayers || 8,
       isPrivate: !!data.isPrivate,
       status: 'waiting',
@@ -93,7 +93,6 @@ io.on('connection', (socket) => {
     }
 
     if (!targetRoom) {
-      // Create new public room
       const roomId = generateRoomId();
       targetRoom = {
         id: roomId,
@@ -150,7 +149,7 @@ io.on('connection', (socket) => {
     io.emit('room_list', getPublicRoomsList());
   }
 
-  // Update Player Position / State (30Hz Client Broadcast)
+  // Update Player Position / State
   socket.on('player_update', (state) => {
     if (!currentRoomId) return;
     const room = rooms.get(currentRoomId);
@@ -250,6 +249,6 @@ io.on('connection', (socket) => {
 server.listen(PORT, () => {
   console.log(`================================================`);
   console.log(`  IRON SKIES - Multiplayer Game Server Online  `);
-  console.log(`  Listening on Port: http://localhost:${PORT}  `);
+  console.log(`  Listening on Port: ${PORT}                   `);
   console.log(`================================================`);
 });
