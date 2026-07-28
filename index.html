@@ -931,6 +931,8 @@ const TYPES={
  spectreE:{turn:2.6,maxSp:530,thrust:450,grip:4.2,hp:45,r:15,burstN:3,gun:{rate:.11,dmg:7,spread:.03},col:{body:"#4e4a58",dark:"#2a2733",accent:"#c9a8ff",canopy:"#e0d0ff"}}};
 const KILL_CR={jackal:100,viper:150,hornet:200,ace:250,spectreE:350};
 const islands=[],ships=[],clouds=[],sparkles=[],dashes=[];
+let state="menu",tGlobal=0,ts=1,tsTarget=1,acc=0;const FIXED=1/100;
+const JET_SPRITES = {};
 let totalAssetsToLoad=0, loadedAssetsCount=0;
 function trackAssetLoading(img){
  totalAssetsToLoad++;
@@ -1146,7 +1148,6 @@ function aiThink(j,dt){const a=j.ai;
  const diff=angN(desired-j.heading),cmd=clamp(diff*4,-1,1);jetPhys(j,dt,Math.abs(diff)<.02?0:cmd);a.evadeT=Math.max(0,a.evadeT-dt);}
 
 /* ---- state ---- */
-let state="menu",tGlobal=0,ts=1,tsTarget=1,acc=0;const FIXED=1/100;
 let score=0,wave=0,combo=0,comboT=-9,clearT=0,deathT=0,dmgT=0,shake=0,flashA=0,lockTarget=null,lockProg=0,toneT=0,warnT=0,runCr=0,newBest=false;
 let st={shots:0,hits:0,kills:0,maxCombo:1,start:0};const cam={x:0,y:0,zoom:1};const respT={A:0,B:0};
 function setState(s){state=s;document.body.dataset.state=s;
