@@ -670,7 +670,7 @@ const TRAITLBL={
 };
 const TRACKS=[{k:"ENG",l:"POWERPLANT",s:"SPD / THRUST / AB BOOST"},{k:"HUL",l:"AIRFRAME",s:"HULL / FLARES"},
  {k:"GUN",l:"CANNON",s:"DMG / ROF / ACC"},{k:"AVI",l:"AVIONICS",s:"LOCK / RANGE"},{k:"ORD",l:"ORDNANCE",s:"MISSILES / PAYLOAD"}];
-const TBASE={ENG:90,HUL:110,GUN:130,AVI:170,ORD:220};
+const TBASE={ENG:1200,HUL:1500,GUN:1800,AVI:2400,ORD:3200};
 const HANGAR=[
  {id:"wraith",name:"F/A-37 WRAITH",reqLvl:1,flag:"[USA]",gen:"4G PROTOTYPE",origin:"UNITED STATES",engine:"TWIN F110-GE-129 AFTERBURNING TURBOFANS",radar:"AN/APG-68(V)9 PULSE-DOPPLER",mach:"MACH 1.6 · +9.0G",role:"MULTIROLE · STARTER",price:0,tier:1,arCapable:false,
   turn:2.7,maxSp:540,thrust:430,grip:4.4,hp:100,gun:{rate:.09,dmg:9,spread:.028,heat:8.4},gunLabel:"20MM VULCAN",
@@ -737,46 +737,46 @@ const HANGAR=[
   msl:{cls:"AR",count:8,label:"AIM-120D LONGBOW"},flr:7,trait:"heavy",
   desc:"Heavy missile truck carrying a fleet-record 8 active-radar Longbow missiles into battle at Mach 2.5 speeds.",
   col:{body:"#8398ad",dark:"#485c70",accent:"#ffd257",canopy:"#d8eafd"}},
- {id:"raptor",name:"F-22 NIGHTHAWK",reqLvl:32,flag:"[USA]",gen:"5TH-GEN STEALTH FLAGSHIP",origin:"UNITED STATES",engine:"TWIN P&W F119 2D TVC TURBOFANS",radar:"AN/APG-77 ACTIVE AESA RADAR",mach:"MACH 2.25 · +9.5G SUPERCRUISE",role:"AIR DOMINANCE · STEALTH",price:17500,tier:3,arCapable:true,
-  turn:3.2,maxSp:580,thrust:510,grip:4.8,hp:110,gun:{rate:.075,dmg:10,spread:.022,heat:7.5},gunLabel:"20MM VULCAN II",
-  msl:{cls:"AR",count:4,label:AR_LABEL},flr:6,trait:"stealth",
-  desc:"Low-observable skin — enemy locks take twice as long. Longbow active-radar missiles reach 2.4km and shrug off flares.",
+ {id:"raptor",name:"F-22 NIGHTHAWK",reqLvl:32,flag:"[USA]",gen:"5TH-GEN STEALTH FLAGSHIP",origin:"UNITED STATES",engine:"TWIN P&W F119 2D TVC TURBOFANS",radar:"AN/APG-77 ACTIVE AESA RADAR",mach:"MACH 2.25 · +9.5G SUPERCRUISE",role:"AIR DOMINANCE · STEALTH",price:21500,tier:4,arCapable:true,
+  turn:3.5,maxSp:720,thrust:660,grip:4.9,hp:155,gun:{rate:.065,dmg:12.5,spread:.018,heat:7.5},gunLabel:"20MM VULCAN II",
+  msl:{cls:"AR",count:6,label:AR_LABEL},flr:8,trait:"stealth",
+  desc:"5th-Gen stealth flagship. 720 KTS supercruise, 6 Longbow BVR active-radar missiles, and 40% stealth shield.",
   col:{body:"#8a93a0",dark:"#4a525e",accent:"#8dffb0",canopy:"#a8ffd8"}},
  {id:"fulcrum",name:"MIG-35 FULCRUM-X",reqLvl:24,flag:"[RUS]",gen:"4.5G AGILITY KING",origin:"RUSSIA",engine:"TWIN KLIMOV RD-33MK TURBOFANS",radar:"ZHUK-AE AESA & OLS-35 IRST",mach:"MACH 2.25 · +10.0G EXTREME",role:"DOGFIGHTER · AGILITY KING",price:19500,tier:3,arCapable:true,
-  turn:3.4,maxSp:560,thrust:500,grip:5.0,hp:100,gun:{rate:.07,dmg:9,spread:.02,heat:7},gunLabel:"30MM GSh-301",
+  turn:3.4,maxSp:620,thrust:560,grip:5.0,hp:130,gun:{rate:.07,dmg:10.5,spread:.02,heat:7},gunLabel:"30MM GSh-301",
   msl:{cls:"IR",count:6,label:"R-73 HEATSEEKER"},flr:6,trait:"agile",
   desc:"Thrust-vectoring agility that pulls impossible angles. Six off-boresight heatseekers, and Ordnance III swaps them for radar missiles.",
   col:{body:"#9aa6b0",dark:"#566068",accent:"#ff8a5c",canopy:"#ffd9c0"}},
- {id:"f35",name:"F-35 LIGHTNING II",reqLvl:36,flag:"[USA]",gen:"5TH-GEN STEALTH STRIKER",origin:"UNITED STATES",engine:"PRATT & WHITNEY F135 TURBOFAN",radar:"AN/APG-81 AESA & AN/AAQ-37 DAS",mach:"MACH 1.6 · +9.0G SENSOR FUSION",role:"5TH-GEN STEALTH · EOTS STRIKER",price:20500,tier:4,arCapable:true,
-  turn:3.1,maxSp:590,thrust:520,grip:4.8,hp:115,gun:{rate:.065,dmg:10.8,spread:.02,heat:7.5},gunLabel:"25MM GAU-22/A",
+ {id:"f35",name:"F-35 LIGHTNING II",reqLvl:36,flag:"[USA]",gen:"5TH-GEN STEALTH STRIKER",origin:"UNITED STATES",engine:"PRATT & WHITNEY F135 TURBOFAN",radar:"AN/APG-81 AESA & AN/AAQ-37 DAS",mach:"MACH 1.8 · +9.0G SENSOR FUSION",role:"5TH-GEN STEALTH · EOTS STRIKER",price:20500,tier:4,arCapable:true,
+  turn:3.4,maxSp:680,thrust:620,grip:4.8,hp:145,gun:{rate:.065,dmg:12.0,spread:.018,heat:7.5},gunLabel:"25MM GAU-22/A",
   msl:{cls:"AR",count:6,label:"AIM-120D LONGBOW"},flr:7,trait:"stealth",
   desc:"5th-Gen stealth multirole striker with EOTS sensor suite. Enemy locks take 2x longer while 6 Longbow BVR missiles track targets.",
   col:{body:"#738394",dark:"#3f4e5e",accent:"#8dffb0",canopy:"#bde0fe"}},
- {id:"rafale",name:"RAFALE EH",reqLvl:38,flag:"[FRA]",gen:"4.5G OMNIROLE SPECTRA",origin:"FRANCE",engine:"TWIN SNECMA M88-4e TURBOFANS",radar:"THALES RBE2 AESA & SPECTRA EW",mach:"MACH 1.8 · +9.0G / -3.2G",role:"4.5G OMNIROLE · SPECTRA EW",price:22500,tier:4,arCapable:true,
-  turn:3.3,maxSp:620,thrust:540,grip:4.9,hp:110,gun:{rate:.065,dmg:10.5,spread:.02,heat:7},gunLabel:"30MM GIAT 30",
+ {id:"rafale",name:"RAFALE EH",reqLvl:38,flag:"[FRA]",gen:"4.5G OMNIROLE SPECTRA",origin:"FRANCE",engine:"TWIN SNECMA M88-4e TURBOFANS",radar:"THALES RBE2 AESA & SPECTRA EW",mach:"MACH 2.0 · +9.0G / -3.2G",role:"4.5G OMNIROLE · SPECTRA EW",price:22500,tier:4,arCapable:true,
+  turn:3.5,maxSp:690,thrust:630,grip:4.9,hp:140,gun:{rate:.065,dmg:11.8,spread:.018,heat:7},gunLabel:"30MM GIAT 30",
   msl:{cls:"AR",count:6,label:"METEOR BVR RADAR"},flr:8,trait:"spectra",
   desc:"SPECTRA electronic warfare system doubles flare countermeasure capacity and delays enemy missile locks. 6 Meteor long-range BVR missiles.",
   col:{body:"#8fa4b8",dark:"#516578",accent:"#c9a8ff",canopy:"#dceafd"}},
- {id:"su57",name:"SU-57 FELON",reqLvl:42,flag:"[RUS]",gen:"5TH-GEN STEALTH BRAWLER",origin:"RUSSIA",engine:"TWIN SATURN AL-41F1 3D TVC",radar:"SH-121 N036 BYELKA AESA ARRAY",mach:"MACH 2.0 · +9.5G SUPERCRUISE",role:"5TH-GEN STEALTH BRAWLER",price:24500,tier:4,arCapable:true,
-  turn:3.4,maxSp:620,thrust:560,grip:5.0,hp:155,gun:{rate:.065,dmg:11.8,spread:.02,heat:9},gunLabel:"30MM GSh-30-1",
+ {id:"su57",name:"SU-57 FELON",reqLvl:42,flag:"[RUS]",gen:"5TH-GEN STEALTH BRAWLER",origin:"RUSSIA",engine:"TWIN SATURN AL-41F1 3D TVC",radar:"SH-121 N036 BYELKA AESA ARRAY",mach:"MACH 2.2 · +9.5G SUPERCRUISE",role:"5TH-GEN STEALTH BRAWLER",price:24500,tier:4,arCapable:true,
+  turn:3.6,maxSp:740,thrust:680,grip:5.0,hp:180,gun:{rate:.06,dmg:13.5,spread:.018,heat:9},gunLabel:"30MM GSh-30-1",
   msl:{cls:"AR",count:6,label:"R-77M BVR RADAR"},flr:8,trait:"armor",
-  desc:"5th-Gen stealth brawler with 3D thrust vectoring. 155 HP armored hull + 20% damage reduction with 6 heavy R-77M active-radar missiles.",
+  desc:"5th-Gen stealth brawler with 3D thrust vectoring. 180 HP armored hull + 20% damage reduction with 6 heavy R-77M active-radar missiles.",
   col:{body:"#6a8296",dark:"#394e61",accent:"#ff8a5c",canopy:"#badbf5"}},
- {id:"spectre",name:"YF-23 SPECTRE",reqLvl:45,flag:"[USA]",gen:"5TH-GEN STEALTH INTERCEPTOR",origin:"UNITED STATES",engine:"TWIN GE YF120 VARIABLE-CYCLE",radar:"AN/APG-77 PROTOTYPE AESA",mach:"MACH 2.2 · +8.5G DEEP SUPERCRUISE",role:"DEEP INTERCEPTOR · SNIPER",price:28000,tier:4,arCapable:true,
-  turn:3.0,maxSp:650,thrust:570,grip:4.6,hp:95,gun:{rate:.065,dmg:9,spread:.02,heat:6.5},gunLabel:"20MM RAILGUN",
-  msl:{cls:"AR",count:6,label:"AIM-152 PHOENIX"},flr:7,trait:"supercruise",
-  desc:"Supercruises at full power. The deepest upgrade tree in the fleet — six extreme-range Phoenix missiles erase bandits before the merge.",
+ {id:"spectre",name:"YF-23 SPECTRE",reqLvl:45,flag:"[USA]",gen:"5TH-GEN STEALTH INTERCEPTOR",origin:"UNITED STATES",engine:"TWIN GE YF120 VARIABLE-CYCLE",radar:"AN/APG-77 PROTOTYPE AESA",mach:"MACH 2.5 · +9.5G DEEP SUPERCRUISE",role:"DEEP INTERCEPTOR · SNIPER",price:28000,tier:4,arCapable:true,
+  turn:3.6,maxSp:760,thrust:720,grip:5.0,hp:165,gun:{rate:.055,dmg:14.0,spread:.015,heat:6.5},gunLabel:"20MM RAILGUN",
+  msl:{cls:"AR",count:6,label:"AIM-152 PHOENIX"},flr:8,trait:"stealth",
+  desc:"Supercruises at Mach 2.5. 760 KTS top speed, 2.4km BVR Active Radar Phoenix missiles, and stealth shield.",
   col:{body:"#5c5468",dark:"#332d3e",accent:"#c9a8ff",canopy:"#e0d0ff"}},
- {id:"j20",name:"J-20 MIGHTY DRAGON",reqLvl:48,flag:"[CHN]",gen:"5TH-GEN STEALTH FLAGSHIP",origin:"CHINA",engine:"TWIN SHENYANG WS-15 3D TVC",radar:"TYPE 1475 (KLJ-5) ACTIVE AESA",mach:"MACH 2.2 · +9.5G SUPERCRUISE",role:"5TH-GEN STEALTH HEAVY FLAGSHIP",price:29500,tier:4,arCapable:true,
-  turn:3.2,maxSp:640,thrust:580,grip:4.9,hp:125,gun:{rate:.06,dmg:11.0,spread:.018,heat:7.5},gunLabel:"30MM CANNON",
-  msl:{cls:"AR",count:6,label:"PL-15 BVR RADAR"},flr:8,trait:"supercruise",
-  desc:"The ultimate flagship. 5th-Gen stealth canard-delta with sustained supercruise and 6 extreme-range PL-15 active-radar BVR missiles.",
+ {id:"j20",name:"J-20 MIGHTY DRAGON",reqLvl:48,flag:"[CHN]",gen:"5TH-GEN STEALTH FLAGSHIP",origin:"CHINA",engine:"TWIN SHENYANG WS-15 3D TVC",radar:"TYPE 1475 (KLJ-5) ACTIVE AESA",mach:"MACH 2.5 · +9.5G SUPERCRUISE",role:"5TH-GEN STEALTH HEAVY FLAGSHIP",price:29500,tier:4,arCapable:true,
+  turn:3.7,maxSp:750,thrust:700,grip:5.0,hp:175,gun:{rate:.055,dmg:13.8,spread:.015,heat:7.5},gunLabel:"30MM CANNON",
+  msl:{cls:"AR",count:6,label:"PL-15 BVR RADAR"},flr:8,trait:"stealth",
+  desc:"The ultimate 5th-Gen stealth flagship. Sustained Mach 2.5 supercruise with 6 extreme-range PL-15 active-radar BVR missiles.",
   col:{body:"#4e6578",dark:"#293b4a",accent:"#c9a8ff",canopy:"#a6d5fa"}}
 ];
 const cfgBase=id=>HANGAR.find(c=>c.id===id);
 function maxLvl(j){return 3+j.tier}
 function upOf(id){return save.up[id]||(save.up[id]={})}
-function costOf(j,k,cur){return Math.round(TBASE[k]*j.tier*(1+cur*0.85))}
+function costOf(j,k,cur){return Math.round(TBASE[k]*j.tier*Math.pow(2.25,cur));}
 function effective(id){
   const b=cfgBase(id),u=upOf(id),L=t=>u[t]||0;
   const eng=L("ENG"), maxSp=b.maxSp+eng*16, thrust=b.thrust+eng*20, hp=b.hp+L("HUL")*16;
@@ -1136,8 +1136,10 @@ function feed(txt,cls){const el=document.createElement("div");el.className="feed
 /* ---- combat ---- */
 function shoot(j){const g=j.gun;const dir=j.heading+rand(-g.spread,g.spread)+(j===player?0:j.ai.err);
  const nx=j.x+Math.cos(j.heading)*20,ny=j.y+Math.sin(j.heading)*20;
- bullets.push({x:nx,y:ny,vx:j.vx*.4+Math.cos(dir)*880,vy:j.vy*.4+Math.sin(dir)*880,life:.85,team:j.team,dmg:g.dmg});
- addP({t:"flash",x:nx,y:ny,life:.06,max:.06,size:14});j.vx-=Math.cos(j.heading)*7;j.vy-=Math.sin(j.heading)*7;
+ const isRail=g.dmg>=13.5, is30mm=g.dmg>=11;
+ const mVel=isRail?1350:(is30mm?1080:880), mLife=isRail?1.25:(is30mm?1.05:.85);
+ bullets.push({x:nx,y:ny,vx:j.vx*.4+Math.cos(dir)*mVel,vy:j.vy*.4+Math.sin(dir)*mVel,life:mLife,team:j.team,dmg:g.dmg});
+ addP({t:"flash",x:nx,y:ny,life:.06,max:.06,size:is30mm?18:14});j.vx-=Math.cos(j.heading)*(is30mm?10:6);j.vy-=Math.sin(j.heading)*(is30mm?10:6);
  if(j===player){st.shots++;if(st.shots%2)AU.shot(.15);}else if(Math.hypot(j.x-cam.x,j.y-cam.y)<1100)AU.shot(.07);}
 function distVol(x,y,maxDist=2400){const lx=player?player.x:cam.x,ly=player?player.y:cam.y,d=Math.hypot(x-lx,y-ly);return clamp((1-(d/maxDist))*.52,.05,.52);}
 function launchMissile(j,target,spec){missiles.push({x:j.x+Math.cos(j.heading)*14,y:j.y+Math.sin(j.heading)*14,cls:spec.cls,
