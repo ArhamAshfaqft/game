@@ -425,6 +425,32 @@ body.night-mode #topbar .tb-cr{color:#ffaa00!important;text-shadow:0 0 14px rgba
       </div>
     </div>
   </div>
+  
+  <!-- CREATE ROOM MODAL WITH 1v1 DUEL OPTION -->
+  <div id="createRoomModal" class="hidden" style="position:fixed;inset:0;z-index:99;background:rgba(3,10,16,.88);display:flex;align-items:center;justify-content:center;">
+    <div class="panel" style="width:min(460px,92vw);">
+      <div style="padding:22px;display:flex;flex-direction:column;gap:16px;">
+        <div class="bk-h"><span class="lbl" style="font-size:12px;color:var(--amber);">HOST MULTIPLAYER MATCH</span><button onclick="closeCreateRoomModal()" style="background:none;border:none;color:#ff5d57;font-weight:bold;cursor:pointer;font-size:16px;">✕</button></div>
+        
+        <div>
+          <span class="lbl">SQUADRON ROOM NAME</span>
+          <input type="text" id="roomNameInput" value="1v1 DOGFIGHT DUEL" style="width:100%;margin-top:6px;padding:10px 14px;background:rgba(3,14,24,.9);border:1px solid rgba(0,243,255,.3);color:#fff;font:700 13px 'Chakra Petch';border-radius:4px;outline:none;" />
+        </div>
+
+        <div>
+          <span class="lbl">MAXIMUM PLAYERS</span>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
+            <button class="env-btn on" id="maxP2" onclick="setMaxP(2)">2 PLAYERS (1v1 DUEL)</button>
+            <button class="env-btn" id="maxP4" onclick="setMaxP(4)">4 PLAYERS (2v2)</button>
+            <button class="env-btn" id="maxP8" onclick="setMaxP(8)">8 PLAYERS</button>
+            <button class="env-btn" id="maxP12" onclick="setMaxP(12)">12 PLAYERS</button>
+          </div>
+        </div>
+
+        <button class="ubtn buy" id="btnConfirmCreate" style="margin-top:10px;padding:12px;font-size:15px;width:100%;">▸ LAUNCH ROOM HOST</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="over">
@@ -1663,11 +1689,27 @@ AU.loadSample("launch", "sounds/missile-launch.mp3");
 AU.loadSample("boom", "sounds/explosion.mp3");
 [["ti0","jackal"],["ti1","viper"],["ti2","hornet"],["ti3","ace"],["ti4","spectreE"]].forEach(([id,tp])=>drawThreatIcon(id,tp));
 updMenuMeta();updCr();
+let selectedMaxPlayers = 2;
+function setMaxP(n){
+ selectedMaxPlayers = n;
+ [2, 4, 8, 12].forEach(num => {
+  const btn = $("maxP" + num);
+  if (btn) btn.classList.toggle("on", num === n);
+ });
+}
+function openCreateRoomModal(){const m=$("createRoomModal");if(m)m.classList.remove("hidden");}
+function closeCreateRoomModal(){const m=$("createRoomModal");if(m)m.classList.add("hidden");}
+
 $("tabSortie").addEventListener("click",e=>{e.currentTarget.blur();switchView("sortie");});
 $("tabHangar").addEventListener("click",e=>{e.currentTarget.blur();switchView("hangar");});
 const tmBtn=$("tabMulti");if(tmBtn)tmBtn.addEventListener("click",e=>{e.currentTarget.blur();switchView("multi");});
 const qmBtn=$("btnQuickMatch");if(qmBtn)qmBtn.addEventListener("click",e=>{e.currentTarget.blur();if(socket)socket.emit("quick_match",{mode:currentMultiMode,pilotName:($("callsignInput")?.value||"MAVERICK"),airframe:save.sel});});
-const crBtn=$("btnCreateRoom");if(crBtn)crBtn.addEventListener("click",e=>{e.currentTarget.blur();if(socket)socket.emit("create_room",{mode:currentMultiMode,pilotName:($("callsignInput")?.value||"MAVERICK"),airframe:save.sel,maxPlayers:8});});
+const crBtn=$("btnCreateRoom");if(crBtn)crBtn.addEventListener("click",e=>{e.currentTarget.blur();openCreateRoomModal();});
+const confirmBtn=$("btnConfirmCreate");if(confirmBtn)confirmBtn.addEventListener("click",e=>{e.currentTarget.blur();
+ const rName=$("roomNameInput")?.value||"1v1 DUEL";
+ if(socket)socket.emit("create_room",{name:rName,mode:currentMultiMode,pilotName:($("callsignInput")?.value||"MAVERICK"),airframe:save.sel,maxPlayers:selectedMaxPlayers});
+ closeCreateRoomModal();
+});
 $("launch").addEventListener("click",e=>{e.currentTarget.blur();startGame();});
 $("refly").addEventListener("click",e=>{e.currentTarget.blur();startGame();});
 $("toHangar").addEventListener("click",e=>{e.currentTarget.blur();setState("menu");switchView("hangar");updMenuMeta();});
