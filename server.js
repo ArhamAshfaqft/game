@@ -119,16 +119,24 @@ io.on('connection', (socket) => {
 
     const team = room.mode === 'tdm' ? (room.players.size % 2 === 0 ? 'ALPHA' : 'BRAVO') : 'FFA';
 
+    const playerIdx = room.players.size;
+    const spawnDist = 800;
+    const spawnAngles = [Math.PI, 0, -Math.PI/2, Math.PI/2, -Math.PI/4, 3*Math.PI/4, Math.PI/4, -3*Math.PI/4];
+    const spawnAngle = spawnAngles[playerIdx % spawnAngles.length];
+    const spawnX = Math.cos(spawnAngle) * spawnDist;
+    const spawnY = Math.sin(spawnAngle) * spawnDist;
+    const faceAngle = spawnAngle + Math.PI;
+
     const playerState = {
       id: socket.id,
       name: pilotName,
       airframe: airframe,
       team: team,
-      x: (Math.random() - 0.5) * 1200,
-      y: (Math.random() - 0.5) * 1200,
-      heading: Math.random() * Math.PI * 2,
-      vx: 0,
-      vy: 0,
+      x: spawnX,
+      y: spawnY,
+      heading: faceAngle,
+      vx: Math.cos(faceAngle) * 300,
+      vy: Math.sin(faceAngle) * 300,
       thr: 0.7,
       ab: false,
       hp: 100,
