@@ -397,30 +397,30 @@ body.night-mode #topbar .tb-cr{color:#ffaa00!important;text-shadow:0 0 14px rgba
       </div>
     </div>
     
-    <div style="display:grid;grid-template-columns:1fr 340px;gap:24px;flex:1;min-height:0;">
-      <!-- LOBBY ROOMS LIST -->
-      <div class="panel" style="display:flex;flex-direction:column;">
-        <div style="padding:16px;">
-          <div class="bk-h" style="margin-bottom:12px;"><span class="lbl">ACTIVE SQUADRON ROOMS</span><span class="lbl a" id="netStatus" style="color:var(--amber);">CONNECTING...</span></div>
-          <div id="roomListContainer" style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:460px;"></div>
-        </div>
-      </div>
-      
+    <div style="display:grid;grid-template-columns:280px 1fr;gap:24px;flex:1;min-height:0;">
       <!-- PILOT COMBAT CARD & MODE SELECTOR -->
-      <div class="panel">
+      <div class="panel" style="overflow-y:auto;">
         <div style="padding:16px;display:flex;flex-direction:column;gap:14px;">
           <div class="bk-h"><span class="lbl">YOUR MULTIPLAYER CALLSIGN</span></div>
-          <input type="text" id="callsignInput" value="MAVERICK" style="width:100%;padding:10px 14px;background:rgba(3,14,24,.9);border:1px solid rgba(0,243,255,.3);color:#fff;font:700 14px 'Chakra Petch';border-radius:4px;outline:none;" />
+          <input type="text" id="callsignInput" value="MAVERICK" style="width:100%;padding:10px 14px;background:rgba(3,14,24,.9);border:1px solid rgba(0,243,255,.3);color:#fff;font:700 14px 'Chakra Petch';border-radius:4px;outline:none;box-sizing:border-box;" />
           
           <div class="bk-h"><span class="lbl">SELECTED COMBAT MODE</span></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <button class="env-btn on" id="modeFFA" onclick="setMultiMode('ffa')">FREE-FOR-ALL</button>
-            <button class="env-btn" id="modeTDM" onclick="setMultiMode('tdm')">TEAM DEATHMATCH</button>
+            <button class="env-btn on" id="modeFFA" onclick="setMultiMode('ffa')">FFA</button>
+            <button class="env-btn" id="modeTDM" onclick="setMultiMode('tdm')">TDM</button>
           </div>
           
-          <div id="multiSpecCard" style="margin-top:10px;padding:12px;background:rgba(4,18,30,.9);border:1px solid rgba(141,255,176,.25);border-radius:4px;">
+          <div id="multiSpecCard" style="padding:10px;background:rgba(4,18,30,.9);border:1px solid rgba(141,255,176,.25);border-radius:4px;">
             <!-- Filled dynamically -->
           </div>
+        </div>
+      </div>
+
+      <!-- LOBBY ROOMS LIST -->
+      <div class="panel" style="display:flex;flex-direction:column;">
+        <div style="padding:16px;flex:1;display:flex;flex-direction:column;">
+          <div class="bk-h" style="margin-bottom:12px;"><span class="lbl">ACTIVE SQUADRON ROOMS</span><span class="lbl a" id="netStatus" style="color:var(--amber);">CONNECTING...</span></div>
+          <div id="roomListContainer" style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1;"></div>
         </div>
       </div>
     </div>
@@ -435,6 +435,14 @@ body.night-mode #topbar .tb-cr{color:#ffaa00!important;text-shadow:0 0 14px rgba
         <div>
           <span class="lbl">SQUADRON ROOM NAME</span>
           <input type="text" id="roomNameInput" value="1v1 DOGFIGHT DUEL" style="width:100%;margin-top:6px;padding:10px 14px;background:rgba(3,14,24,.9);border:1px solid rgba(0,243,255,.3);color:#fff;font:700 13px 'Chakra Petch';border-radius:4px;outline:none;" />
+        </div>
+
+        <div>
+          <span class="lbl">COMBAT MODE</span>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
+            <button class="env-btn on" id="modalFFA" onclick="setModalMode('ffa')">FREE-FOR-ALL</button>
+            <button class="env-btn" id="modalTDM" onclick="setModalMode('tdm')">TEAM DEATHMATCH</button>
+          </div>
         </div>
 
         <div>
@@ -1218,7 +1226,10 @@ let score=0,wave=0,combo=0,comboT=-9,clearT=0,deathT=0,dmgT=0,shake=0,flashA=0,l
 let st={shots:0,hits:0,kills:0,maxCombo:1,start:0};const cam={x:0,y:0,zoom:1};const respT={A:0,B:0};
 function setState(s){state=s;document.body.dataset.state=s;
  if(s==="play"){lockPointer();}
- else{if(document.pointerLockElement)document.exitPointerLock();mouse.x=innerWidth/2;mouse.y=innerHeight/2;}}
+ else{
+  if(document.pointerLockElement)document.exitPointerLock();mouse.x=innerWidth/2;mouse.y=innerHeight/2;
+  if(s==="menu"&&inMultiMatch){leaveMultiMatch();}
+ }}
 function addScore(n){score+=n;const el=$("score");el.textContent=fmt(score);el.classList.remove("pop");void el.offsetWidth;el.classList.add("pop");
  const c=$("combo");if(combo>1){c.textContent="×"+Math.min(combo,5);c.classList.add("on");}}
 function updCr(){const el=$("cr");el.textContent=fmt(save.cr);el.classList.remove("pop");void el.offsetWidth;el.classList.add("pop");$("walletCr").textContent=fmt(save.cr);}
@@ -1675,6 +1686,24 @@ function syncRemotePlayersToJets() {
   }
 }
 
+function leaveMultiMatch(){
+ if(!inMultiMatch)return;
+ inMultiMatch=false;
+ remotePlayers.clear();
+ for(let i=jets.length-1;i>=0;i--){if(jets[i].netId)jets.splice(i,1);}
+ if(socket){socket.emit("leave_room");}
+}
+
+function setModalMode(m){
+ currentMultiMode=m;
+ const ffa=$("modalFFA"),tdm=$("modalTDM");
+ if(ffa)ffa.classList.toggle("on",m==="ffa");
+ if(tdm)tdm.classList.toggle("on",m==="tdm");
+ const ffa2=$("modeFFA"),tdm2=$("modeTDM");
+ if(ffa2)ffa2.classList.toggle("on",m==="ffa");
+ if(tdm2)tdm2.classList.toggle("on",m==="tdm");
+}
+
 function setMultiMode(m) {
   currentMultiMode = m;
   const ffa = $("modeFFA"), tdm = $("modeTDM");
@@ -1817,7 +1846,16 @@ function loop(now){requestAnimationFrame(loop);let frameDt=Math.min(.1,(now-last
  if(state==="play"){acc+=frameDt*ts;let s=0;while(acc>=FIXED&&s<10){step(FIXED);acc-=FIXED;s++;}}
  else if(state==="menu"){step(frameDt*ts);}
  else if(state==="over"){updFX(frameDt);}
- if(player&&player.dead&&state==="play"){deathT-=frameDt;if(deathT<=0){tsTarget=1;showOver();}}
+ if(player&&player.dead&&state==="play"){deathT-=frameDt;if(deathT<=0){tsTarget=1;
+   if(inMultiMatch){
+    banner("RESPAWNING","BACK IN 3 SECONDS");
+    setTimeout(()=>{if(!inMultiMatch||state!=="play")return;
+     const idx=jets.indexOf(player);if(idx>=0)jets.splice(idx,1);
+     spawnPlayer();cam.x=player.x;cam.y=player.y;
+     feed("YOU RESPAWNED","sys");
+    },3000);
+    deathT=999;
+   }else{showOver();}}}
  /* ---- 30Hz network sync: send our position to server ---- */
  if(inMultiMatch&&socket&&player&&state==="play"){
   netSyncT+=frameDt;

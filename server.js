@@ -240,6 +240,23 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Leave Room (abort mission)
+  socket.on('leave_room', () => {
+    if (currentRoomId) {
+      const room = rooms.get(currentRoomId);
+      if (room) {
+        room.players.delete(socket.id);
+        socket.to(currentRoomId).emit('player_left', socket.id);
+        socket.leave(currentRoomId);
+        if (room.players.size === 0) {
+          rooms.delete(currentRoomId);
+        }
+      }
+      currentRoomId = null;
+      io.emit('room_list', getPublicRoomsList());
+    }
+  });
+
   // Leave / Disconnect
   socket.on('disconnect', () => {
     console.log(`[NET] Player disconnected: ${socket.id}`);
