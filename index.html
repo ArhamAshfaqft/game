@@ -1566,23 +1566,79 @@ function initMultiplayer() {
   socket.on("player_joined", (playerData) => {
     feed(playerData.name + " (" + playerData.airframe.toUpperCase() + ") JOINED SQUADRON", "sys");
     remotePlayers.set(playerData.id, playerData);
+    syncRemotePlayersToJets();
   });
 
   socket.on("player_moved", (pState) => {
     const p = remotePlayers.get(pState.id);
     if (p) Object.assign(p, pState);
     else remotePlayers.set(pState.id, pState);
+    syncRemotePlayersToJets();
   });
 
   socket.on("player_left", (id) => {
     const p = remotePlayers.get(id);
     if (p) { feed(p.name + " LEFT SQUADRON", "sys"); remotePlayers.delete(id); }
+    syncRemotePlayersToJets();
+  });
+
+  socket.on("cannon_fired", (data) => {
+    if (data.id === socket.id) return;
+    const is30mm = (data.dmg || 9) >= 11, isRail = (data.dmg || 9) >= 13.5;
+    const mVel = isRail ? 1350 : (is30mm ? 1080 : 880);
+    const mLife = isRail ? 1.25 : (is30mm ? 1.05 : .85);
+    bullets.push({
+      x: data.x, y: data.y,
+      vx: Math.cos(data.heading) * mVel,
+      vy: Math.sin(data.heading) * mVel,
+      life: mLife, team: "E", dmg: data.dmg || 9
+    });
+    AU.shot(.07);
+  });
+
+  socket.on("missile_launched", (data) => {
+    if (data.id === socket.id) return;
+    const targetJet = (data.targetId === socket.id) ? player : jets.find(j => j.netId === data.targetId);
+    launchMissile({ x: data.x, y: data.y, heading: data.heading, team: "E" }, targetJet, missileSpec(data.cls || "IR", 1, 1));
+  });
+
+  socket.on("flare_dropped", (data) => {
+    if (data.id === socket.id) return;
+    flares.push({ x: data.x, y: data.y, vx: rand(-120,120), vy: rand(-120,120), life: 2.2, hot: 1.8, team: "E" });
   });
 
   socket.on("killfeed", (k) => {
     feed("⚔ " + k.attackerName + " ➔ " + k.targetName + " [" + k.weapon + "]", "cr");
   });
   renderMultiSpecCard();
+}
+
+function syncRemotePlayersToJets() {
+  if (!inMultiMatch) return;
+  remotePlayers.forEach((rp, id) => {
+    if (id === socket?.id) return;
+    let rJet = jets.find(j => j.netId === id);
+    if (!rJet) {
+      const cfg = cfgBase(rp.airframe) || cfgBase("wraith");
+      rJet = {
+        netId: id,
+        id: ++uid,
+        type: rp.airframe,
+        team: (currentMultiMode === "tdm" && rp.team === player?.team) ? "P" : "E",
+        x: rp.x, y: rp.y, heading: rp.heading,
+        vx: rp.vx, vy: rp.vy, thr: rp.thr || .7, ab: !!rp.ab,
+        hp: rp.hp || 100, maxHp: rp.maxHp || 100, dead: !!rp.dead,
+        hitFlash: 0, bank: 0, g: 1, pva: rp.heading,
+        pilotName: rp.name, cfg, T: { col: cfg.col, turn: cfg.turn, maxSp: cfg.maxSp, hp: cfg.hp }
+      };
+      jets.push(rJet);
+    } else {
+      rJet.x = rp.x; rJet.y = rp.y; rJet.heading = rp.heading;
+      rJet.vx = rp.vx; rJet.vy = rp.vy; rJet.thr = rp.thr || .7; rJet.ab = !!rp.ab;
+      rJet.hp = rp.hp || 100; rJet.dead = !!rp.dead;
+      if (rp.name) rJet.pilotName = rp.name;
+    }
+  });
 }
 
 function setMultiMode(m) {
