@@ -1297,8 +1297,9 @@ function step(dt){tGlobal+=dt;
   else{lockProg=Math.max(0,lockProg-dt*3);if(lockProg===0)lockTarget=best;else if(best)lockTarget=best;}
   if(lockTarget&&lockTarget.dead){lockTarget=null;lockProg=0;}
   toneT-=dt;if(lockTarget&&toneT<=0){if(lockProg>=1){AU.blip(1500,.04,"square",.09);toneT=.07;}else if(lockProg>0){AU.blip(1150,.05,"square",.07);toneT=lerp(.3,.09,lockProg);}}
+  for(const j of jets)if(!j.dead&&j!==player&&j.ai&&!j.netId)aiThink(j,dt);
+  for(const j of jets){if(j.netId&&j!==player&&!j.dead){if(j.tx!==undefined){j.x=lerp(j.x,j.tx,Math.min(1,dt*16));j.y=lerp(j.y,j.ty,Math.min(1,dt*16));j.heading+=angN(j.th-j.heading)*Math.min(1,dt*16);}else{j.x+=j.vx*dt;j.y+=j.vy*dt;}}}
  } else if(player) jetPhys(player,dt,0);
- for(const j of jets)if(!j.dead&&j!==player&&j.ai&&!j.netId)aiThink(j,dt);
  for(const b of bullets){b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;
   for(const j of jets){if(j.dead||j.team===b.team)continue;if(Math.hypot(j.x-b.x,j.y-b.y)<j.T.r+2){b.life=0;hurt(j,b.dmg);if(b.team==="P")st.hits++;
    for(let i=0;i<2;i++)addP({t:"spark",x:b.x,y:b.y,vx:rand(-160,160),vy:rand(-160,160),life:.18,max:.18});break;}}}
@@ -1671,7 +1672,7 @@ function syncRemotePlayersToJets() {
       };
       jets.push(rJet);
     } else {
-      rJet.x = rp.x; rJet.y = rp.y; rJet.heading = rp.heading;
+      rJet.tx = rp.x; rJet.ty = rp.y; rJet.th = rp.heading;
       rJet.vx = rp.vx || 0; rJet.vy = rp.vy || 0;
       rJet.thr = rp.thr || .7; rJet.throttleT = rp.thr || .7;
       rJet.ab = !!rp.ab;
