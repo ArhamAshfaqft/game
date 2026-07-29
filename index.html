@@ -1220,16 +1220,26 @@ function addScore(n){score+=n;const el=$("score");el.textContent=fmt(score);el.c
 function updCr(){const el=$("cr");el.textContent=fmt(save.cr);el.classList.remove("pop");void el.offsetWidth;el.classList.add("pop");$("walletCr").textContent=fmt(save.cr);}
 function banner(h,s){$("banH").textContent=h;$("banS").textContent=s;const b=$("banner");b.classList.remove("show");void b.offsetWidth;b.classList.add("show");}
 function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(e._to);e._to=setTimeout(()=>e.classList.remove("show"),2600);}
-function nextWave(){wave++;clearT=0;const comp=waveComp(wave);banner("WAVE "+nn(wave),comp.length+" BANDITS INBOUND");
+function nextWave(){
+ if(inMultiMatch) return;
+ wave++;clearT=0;const comp=waveComp(wave);banner("WAVE "+nn(wave),comp.length+" BANDITS INBOUND");
  comp.forEach((tp,i)=>spawnEnemy(tp,i,comp.length));$("waveNo").textContent=nn(wave);
  AU.blip(660,.1,"square",.14);setTimeout(()=>AU.blip(990,.14,"square",.14),140);if(wave===1)setTimeout(()=>$("hint").classList.add("off"),8000);}
 function resupply(){if(!player)return;player.msl=Math.min(player.mslMax,player.msl+2);player.flr=Math.min(player.flrMax,player.flr+3);player.hp=Math.min(player.maxHp,player.hp+22);
  pops.push({x:player.x,y:player.y-34,txt:"RESUPPLY",life:1.4,c:"#7fe3ff",size:13});}
 function startGame(){AU.init();if(AU.ctx&&AU.ctx.state==="suspended")AU.ctx.resume();
  jets.length=0;bullets.length=0;missiles.length=0;flares.length=0;parts.length=0;pops.length=0;$("feed").innerHTML="";
- score=0;wave=0;combo=0;clearT=0;lockProg=0;lockTarget=null;dmgT=0;shake=0;ts=1;tsTarget=1;acc=0;runCr=0;newBest=false;
+ score=0;wave=0;clearT=0;lockProg=0;lockTarget=null;dmgT=0;shake=0;ts=1;tsTarget=1;acc=0;runCr=0;newBest=false;
  st={shots:0,hits:0,kills:0,maxCombo:1,start:tGlobal};save.sorties++;persist();spawnPlayer();cam.x=player.x;cam.y=player.y;cam.zoom=1;
- $("score").textContent="0";$("waveNo").textContent="01";$("hint").classList.remove("off");$("fScore").textContent="0";updCr();setState("play");}
+ $("score").textContent="0";
+ const waveEl=$("waveNo");
+ if(inMultiMatch){
+  if(waveEl)waveEl.textContent="PVP";
+  banner("TACTICAL MULTIPLAYER",currentMultiMode.toUpperCase()+" · ZERO AI BANDITS");
+ }else{
+  if(waveEl)waveEl.textContent="01";
+ }
+ $("hint").classList.remove("off");$("fScore").textContent="0";updCr();setState("play");}
 function showOver(){setState("over");if(score>save.best){save.best=score;newBest=true;}save.bestWave=Math.max(save.bestWave,Math.max(0,wave-1));persist();
  $("newBest").classList.toggle("hidden",!newBest);$("fKills").textContent=st.kills;$("fAcc").textContent=(st.shots?Math.round(st.hits/st.shots*100):0)+"%";
  $("fWaves").textContent=nn(Math.max(0,wave-1));$("fCombo").textContent="×"+st.maxCombo;const tt=Math.floor(tGlobal-st.start);$("fTime").textContent=Math.floor(tt/60)+":"+nn(tt%60);$("fCr").textContent="+"+fmt(runCr);
