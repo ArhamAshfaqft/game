@@ -1134,13 +1134,15 @@ function feed(txt,cls){const el=document.createElement("div");el.className="feed
  while($("feed").children.length>4)$("feed").firstChild.remove();setTimeout(()=>el.classList.add("out"),2400);setTimeout(()=>el.remove(),3000);}
 
 /* ---- combat ---- */
-function shoot(j){const g=j.gun;const dir=j.heading+rand(-g.spread,g.spread)+(j===player?0:j.ai.err);
+function shoot(j){const g=j.gun;const dir=j.heading+rand(-g.spread,g.spread)+(j===player?0:(j.ai?j.ai.err:0));
  const nx=j.x+Math.cos(j.heading)*20,ny=j.y+Math.sin(j.heading)*20;
  const isRail=g.dmg>=13.5, is30mm=g.dmg>=11;
  const mVel=isRail?1350:(is30mm?1080:880), mLife=isRail?1.25:(is30mm?1.05:.85);
  bullets.push({x:nx,y:ny,vx:j.vx*.4+Math.cos(dir)*mVel,vy:j.vy*.4+Math.sin(dir)*mVel,life:mLife,team:j.team,dmg:g.dmg});
  addP({t:"flash",x:nx,y:ny,life:.06,max:.06,size:is30mm?18:14});j.vx-=Math.cos(j.heading)*(is30mm?10:6);j.vy-=Math.sin(j.heading)*(is30mm?10:6);
- if(j===player){st.shots++;if(st.shots%2)AU.shot(.15);}else if(Math.hypot(j.x-cam.x,j.y-cam.y)<1100)AU.shot(.07);}
+ if(j===player){st.shots++;if(st.shots%2)AU.shot(.15);
+  if(inMultiMatch&&socket)socket.emit("shoot_cannon",{x:nx,y:ny,heading:dir,dmg:g.dmg});
+ }else if(Math.hypot(j.x-cam.x,j.y-cam.y)<1100)AU.shot(.07);}
 function distVol(x,y,maxDist=2400){const lx=player?player.x:cam.x,ly=player?player.y:cam.y,d=Math.hypot(x-lx,y-ly);return clamp((1-(d/maxDist))*.52,.05,.52);}
 function launchMissile(j,target,spec){missiles.push({x:j.x+Math.cos(j.heading)*14,y:j.y+Math.sin(j.heading)*14,cls:spec.cls,
  heading:j.heading,vx:Math.cos(j.heading)*300,vy:Math.sin(j.heading)*300,sp:300,maxSp:spec.sp,accel:spec.accel,life:spec.life,sus:spec.sus,
@@ -1148,9 +1150,11 @@ function launchMissile(j,target,spec){missiles.push({x:j.x+Math.cos(j.heading)*1
  for(let i=0;i<6;i++)puff(j.x,j.y,rand(-40,40),rand(-40,40),.6,5,30,false);}
 function fireMissile(){if(state!=="play"||!player||player.dead)return;
  if(player.msl<=0){AU.blip(220,.08,"square",.1);return;}if(lockProg<1){AU.blip(320,.06,"square",.08);return;}
- player.msl--;launchMissile(player,lockTarget,player.mslSpec);lockProg=.35;}
+ player.msl--;launchMissile(player,lockTarget,player.mslSpec);lockProg=.35;
+ if(inMultiMatch&&socket)socket.emit("launch_missile",{x:player.x,y:player.y,heading:player.heading,cls:player.mslCls,targetId:lockTarget?.netId||null});}
 function dropFlare(){if(state!=="play"||!player||player.dead||player.flr<=0)return;player.flr--;AU.blip(500,.08,"triangle",.15,-300);
- for(let i=0;i<3;i++)flares.push({x:player.x,y:player.y,vx:player.vx*.5+rand(-70,70)-Math.cos(player.heading)*60,vy:player.vy*.5+rand(-70,70)-Math.sin(player.heading)*60,life:2.4,hot:1.8,team:"P"});}
+ for(let i=0;i<3;i++)flares.push({x:player.x,y:player.y,vx:player.vx*.5+rand(-70,70)-Math.cos(player.heading)*60,vy:player.vy*.5+rand(-70,70)-Math.sin(player.heading)*60,life:2.4,hot:1.8,team:"P"});
+ if(inMultiMatch&&socket)socket.emit("drop_flare",{x:player.x,y:player.y});}
 function hurt(j,dmg){if(j.dead)return;if(j===player&&player.cfg.trait==="armor")dmg*=.78;j.hp-=dmg;j.hitFlash=.22;
  if(j===player){dmgT=Math.min(1,dmgT+.5);shake=Math.min(14,shake+5);AU.blip(170,.12,"sine",.22,-90);}
  else{addScore(5);for(let i=0;i<2;i++)addP({t:"spark",x:j.x,y:j.y,vx:rand(-200,200),vy:rand(-200,200),life:.2,max:.2});}
@@ -1283,7 +1287,7 @@ function step(dt){tGlobal+=dt;
   if(lockTarget&&lockTarget.dead){lockTarget=null;lockProg=0;}
   toneT-=dt;if(lockTarget&&toneT<=0){if(lockProg>=1){AU.blip(1500,.04,"square",.09);toneT=.07;}else if(lockProg>0){AU.blip(1150,.05,"square",.07);toneT=lerp(.3,.09,lockProg);}}
  } else if(player) jetPhys(player,dt,0);
- for(const j of jets)if(!j.dead&&j!==player)aiThink(j,dt);
+ for(const j of jets)if(!j.dead&&j!==player&&j.ai&&!j.netId)aiThink(j,dt);
  for(const b of bullets){b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;
   for(const j of jets){if(j.dead||j.team===b.team)continue;if(Math.hypot(j.x-b.x,j.y-b.y)<j.T.r+2){b.life=0;hurt(j,b.dmg);if(b.team==="P")st.hits++;
    for(let i=0;i<2;i++)addP({t:"spark",x:b.x,y:b.y,vx:rand(-160,160),vy:rand(-160,160),life:.18,max:.18});break;}}}
@@ -1630,25 +1634,45 @@ function syncRemotePlayersToJets() {
     let rJet = jets.find(j => j.netId === id);
     if (!rJet) {
       const cfg = cfgBase(rp.airframe) || cfgBase("wraith");
+      const eff = cfg ? effective(rp.airframe) : null;
+      const useCfg = eff || cfg;
       rJet = {
         netId: id,
         id: ++uid,
-        type: rp.airframe,
-        team: (currentMultiMode === "tdm" && rp.team === player?.team) ? "P" : "E",
-        x: rp.x, y: rp.y, heading: rp.heading,
-        vx: rp.vx, vy: rp.vy, thr: rp.thr || .7, ab: !!rp.ab,
+        type: rp.airframe || "wraith",
+        team: "E",
+        x: rp.x, y: rp.y, heading: rp.heading || 0,
+        vx: rp.vx || 0, vy: rp.vy || 0, thr: rp.thr || .7, ab: !!rp.ab,
         hp: rp.hp || 100, maxHp: rp.maxHp || 100, dead: !!rp.dead,
-        hitFlash: 0, bank: 0, g: 1, pva: rp.heading,
-        pilotName: rp.name, cfg, T: { col: cfg.col, turn: cfg.turn, maxSp: cfg.maxSp, hp: cfg.hp }
+        hitFlash: 0, bank: 0, g: 1, pva: rp.heading || 0,
+        throttleT: rp.thr || .7,
+        pilotName: rp.name || "PILOT",
+        cfg: useCfg,
+        gun: useCfg ? useCfg.gun : { dmg: 9, rate: .08, spread: .04, heat: 2.8 },
+        T: {
+          col: useCfg ? useCfg.col : { body: "#aaa", dark: "#666", accent: "#fff", canopy: "#4af" },
+          turn: useCfg ? useCfg.turn : 3.2,
+          maxSp: useCfg ? useCfg.maxSp : 620,
+          hp: rp.hp || 100,
+          r: 16,
+          burstN: 6
+        }
       };
       jets.push(rJet);
     } else {
       rJet.x = rp.x; rJet.y = rp.y; rJet.heading = rp.heading;
-      rJet.vx = rp.vx; rJet.vy = rp.vy; rJet.thr = rp.thr || .7; rJet.ab = !!rp.ab;
+      rJet.vx = rp.vx || 0; rJet.vy = rp.vy || 0;
+      rJet.thr = rp.thr || .7; rJet.throttleT = rp.thr || .7;
+      rJet.ab = !!rp.ab;
       rJet.hp = rp.hp || 100; rJet.dead = !!rp.dead;
       if (rp.name) rJet.pilotName = rp.name;
     }
   });
+  // Remove jets for players who left
+  for (let i = jets.length - 1; i >= 0; i--) {
+    const j = jets[i];
+    if (j.netId && !remotePlayers.has(j.netId)) jets.splice(i, 1);
+  }
 }
 
 function setMultiMode(m) {
@@ -1788,12 +1812,24 @@ $("snd").addEventListener("click",e=>{e.stopPropagation();AU.init();AU.muted=!AU
 
 /* ---- loop: fixed-step accumulator ---- */
 (function attract(){const a=makeJet("viper","A",-500,-300,.6),b=makeJet("ace","B",600,400,-2.4);jets.push(a,b);cam.x=0;cam.y=0;})();
-let last=performance.now();
+let last=performance.now(), netSyncT=0;
 function loop(now){requestAnimationFrame(loop);let frameDt=Math.min(.1,(now-last)/1000);last=now;ts+=(tsTarget-ts)*Math.min(1,frameDt*8);
  if(state==="play"){acc+=frameDt*ts;let s=0;while(acc>=FIXED&&s<10){step(FIXED);acc-=FIXED;s++;}}
  else if(state==="menu"){step(frameDt*ts);}
  else if(state==="over"){updFX(frameDt);}
  if(player&&player.dead&&state==="play"){deathT-=frameDt;if(deathT<=0){tsTarget=1;showOver();}}
+ /* ---- 30Hz network sync: send our position to server ---- */
+ if(inMultiMatch&&socket&&player&&state==="play"){
+  netSyncT+=frameDt;
+  if(netSyncT>=0.033){
+   netSyncT=0;
+   socket.emit("player_update",{
+    x:player.x,y:player.y,heading:player.heading,
+    vx:player.vx,vy:player.vy,thr:player.thr,ab:player.ab,
+    hp:player.hp,maxHp:player.maxHp,dead:player.dead
+   });
+  }
+ }
  render();hud(frameDt);
  if(state==="menu"){
   if(!$("viewHangar").classList.contains("hidden"))drawHangarIcons();
