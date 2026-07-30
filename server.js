@@ -160,17 +160,11 @@ io.on('connection', (socket) => {
     io.emit('room_list', getPublicRoomsList());
   }
 
-  // Update Player Position / State
-  socket.on('player_update', (state) => {
+  // Update Player Position / State — relay directly for minimum latency
+  socket.on('player_update', (data) => {
     if (!currentRoomId) return;
-    const room = rooms.get(currentRoomId);
-    if (!room) return;
-
-    const player = room.players.get(socket.id);
-    if (player) {
-      Object.assign(player, state);
-      socket.to(currentRoomId).emit('player_moved', player);
-    }
+    data.id = socket.id;
+    socket.to(currentRoomId).emit('player_moved', data);
   });
 
   // Cannon Fire

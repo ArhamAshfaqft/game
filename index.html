@@ -1298,8 +1298,17 @@ function step(dt){tGlobal+=dt;
   if(lockTarget&&lockTarget.dead){lockTarget=null;lockProg=0;}
   toneT-=dt;if(lockTarget&&toneT<=0){if(lockProg>=1){AU.blip(1500,.04,"square",.09);toneT=.07;}else if(lockProg>0){AU.blip(1150,.05,"square",.07);toneT=lerp(.3,.09,lockProg);}}
   for(const j of jets)if(!j.dead&&j!==player&&j.ai&&!j.netId)aiThink(j,dt);
-  for(const j of jets){if(j.netId&&j!==player&&!j.dead){if(j.tx!==undefined){j.x=lerp(j.x,j.tx,Math.min(1,dt*16));j.y=lerp(j.y,j.ty,Math.min(1,dt*16));j.heading+=angN(j.th-j.heading)*Math.min(1,dt*16);}else{j.x+=j.vx*dt;j.y+=j.vy*dt;}}}
  } else if(player) jetPhys(player,dt,0);
+ /* ---- dead reckoning: advance remote jets using velocity, then lerp-correct towards last known server position ---- */
+ for(const j of jets){if(!j.netId||j===player)continue;
+  if(j.dead)continue;
+  j.x+=j.vx*dt; j.y+=j.vy*dt;
+  if(j.tx!==undefined){
+   const corrX=j.tx-j.x, corrY=j.ty-j.y, corrDist=Math.hypot(corrX,corrY);
+   if(corrDist>400){j.x=j.tx;j.y=j.ty;j.heading=j.th;}
+   else{const f=Math.min(1,dt*24); j.x+=corrX*f; j.y+=corrY*f; j.heading+=angN(j.th-j.heading)*f;}
+  }
+ }
  for(const b of bullets){b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;
   for(const j of jets){if(j.dead||j.team===b.team)continue;if(Math.hypot(j.x-b.x,j.y-b.y)<j.T.r+2){b.life=0;hurt(j,b.dmg);if(b.team==="P")st.hits++;
    for(let i=0;i<2;i++)addP({t:"spark",x:b.x,y:b.y,vx:rand(-160,160),vy:rand(-160,160),life:.18,max:.18});break;}}}
@@ -1678,6 +1687,10 @@ function syncRemotePlayersToJets() {
       rJet.ab = !!rp.ab;
       rJet.hp = rp.hp || 100; rJet.dead = !!rp.dead;
       if (rp.name) rJet.pilotName = rp.name;
+      /* snap tx/ty forward by velocity to compensate for network latency */
+      const ping = 0.08;
+      rJet.tx += (rp.vx||0) * ping;
+      rJet.ty += (rp.vy||0) * ping;
     }
   });
   // Remove jets for players who left
